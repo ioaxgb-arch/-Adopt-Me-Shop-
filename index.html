@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adopt Me Shop</title>
+    <style>
+        :root {
+            /* Toques amarillentos que siempre se quedan */
+            --primary-color: #ffd700;
+            --accent-color: #e6c200;
+            
+            /* Colores que cambian con el tema (blanco por defecto) */
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --container-bg: #f9f9f9;
+            --border-color: #dddddd;
+        }
+
+        /* Tema oscuro (negro con gris) */
+        body.dark-mode {
+            --bg-color: #1a1a1a;
+            --text-color: #f1f1f1;
+            --container-bg: #2d2d2d;
+            --border-color: #444444;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Utilidades */
+        .hidden { display: none !important; }
+        .btn {
+            background-color: var(--primary-color);
+            color: #000;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        .btn:hover { background-color: var(--accent-color); }
+        input, select, textarea {
+            padding: 8px; margin: 5px 0; border: 1px solid var(--border-color);
+            background-color: var(--container-bg); color: var(--text-color);
+            border-radius: 4px;
+        }
+
+        /* Autenticación */
+        #auth-section {
+            max-width: 400px; margin: 100px auto; padding: 20px;
+            background-color: var(--container-bg); border-radius: 10px;
+            border: 2px solid var(--primary-color); text-align: center;
+        }
+
+        /* Header y Navegación */
+        header {
+            background-color: var(--primary-color); padding: 15px 20px;
+            display: flex; justify-content: space-between; align-items: center; color: #000;
+        }
+        header h1 { margin: 0; }
+        nav button {
+            background: transparent; border: none; font-size: 16px;
+            font-weight: bold; cursor: pointer; margin-left: 15px; color: #000;
+        }
+        nav button:hover { text-decoration: underline; }
+
+        /* Contenedores de pestañas */
+        .tab-content { padding: 20px; max-width: 1000px; margin: auto; }
+        .card {
+            background-color: var(--container-bg); border: 1px solid var(--border-color);
+            padding: 15px; margin-bottom: 15px; border-radius: 8px;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        /* Perfil */
+        .profile-header { display: flex; align-items: center; gap: 20px; }
+        .profile-pic { width: 100px; height: 100px; border-radius: 50%; background-color: var(--primary-color); object-fit: cover; }
+        .admin-badge { background-color: red; color: white; padding: 2px 5px; border-radius: 3px; font-size: 12px; }
+        
+        /* Tienda */
+        .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .chest-card { text-align: center; background-color: var(--container-bg); border: 1px solid var(--primary-color); padding: 10px; border-radius: 8px; }
+        
+        /* Eventos */
+        .event-card { border-top: 4px solid var(--primary-color); }
+    </style>
+</head>
+<body>
+
+    <div id="auth-section">
+        <h2>Bienvenido a Adopt Me Shop</h2>
+        <div id="login-form">
+            <input type="text" id="auth-user" placeholder="Usuario" required><br>
+            <input type="password" id="auth-pass" placeholder="Contraseña" required><br>
+            <button class="btn" onclick="login()">Entrar</button>
+            <button class="btn" onclick="register()">Registrarse</button>
+        </div>
+        <p><small>Registrarte guardará tus datos localmente simulando la nube.</small></p>
+    </div>
+
+    <div id="app-section" class="hidden">
+        <header>
+            <h1>Adopt Me Shop</h1>
+            <nav>
+                <button onclick="switchTab('perfil')">Perfil</button>
+                <button onclick="switchTab('tienda')">Tienda</button>
+                <button onclick="switchTab('eventos')">Eventos</button>
+                <button onclick="logout()">Salir</button>
+            </nav>
+        </header>
+
+        <main id="tab-perfil" class="tab-content">
+            <div class="card">
+                <div class="profile-header">
+                    <img id="user-img" class="profile-pic" src="https://via.placeholder.com/100?text=Foto">
+                    <div>
+                        <h2 id="user-name">Usuario</h2>
+                        <h3 style="color: var(--primary-color);">Dinero: $<span id="user-money">0</span></h3>
+                    </div>
+                </div>
+                <hr>
+                <h3>Configuración de Perfil</h3>
+                <label>Descripción:</label>
+                <textarea id="user-desc" placeholder="Escribe algo sobre ti..." onchange="saveProfile()"></textarea>
+                <br>
+                <label>Cambiar foto (URL):</label>
+                <input type="text" id="user-img-url" placeholder="URL de la imagen" onchange="saveProfile()">
+                <br>
+                <label>Idioma:</label>
+                <select id="user-lang" onchange="saveProfile()">
+                    <option value="es">Español</option>
+                    <option value="en">Inglés</option>
+                    <option value="pt">Portugués</option>
+                </select>
+                <br>
+                <label>Tema oscuro:</label>
+                <input type="checkbox" id="user-theme" onchange="toggleTheme()">
+                <hr>
+                <h3>Seguridad</h3>
+                <p>Contraseña: <span id="secret-pass">********</span></p>
+                <input type="email" id="security-email" placeholder="Ingresa tu Gmail para revelar">
+                <button class="btn" onclick="revealPassword()">Revelar Contraseña</button>
+            </div>
+
+            <div class="card">
+                <h3>Inventario</h3>
+                <ul id="inventory-list"></ul>
+            </div>
+
+            <div id="lucastv-panel" class="card hidden" style="border-color: red;">
+                <h3>Panel de Administrador (Solo LucasTV)</h3>
+                <p>Usuarios registrados:</p>
+                <ul id="admin-user-list"></ul>
+                <input type="text" id="gift-user" placeholder="Usuario a regalar">
+                <input type="number" id="gift-amount" placeholder="Cantidad $">
+                <button class="btn" onclick="giveMoney()">Regalar Dinero</button>
+            </div>
+        </main>
+
+        <main id="tab-tienda" class="tab-content hidden">
+            <div class="card">
+                <h2>Cofres del Juego</h2>
+                <div id="game-chests" class="shop-grid"></div>
+                <div id="lucastv-chest-btn" class="hidden" style="margin-top: 15px;">
+                    <button class="btn" onclick="document.getElementById('chest-form-game').classList.toggle('hidden')">+ Crear Cofre del Juego</button>
+                    <div id="chest-form-game" class="hidden">
+                        <input type="text" id="cg-name" placeholder="Nombre del Cofre">
+                        <input type="number" id="cg-price" placeholder="Precio $">
+                        <button class="btn" onclick="createChest('game')">Guardar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Cofres de la Comunidad</h2>
+                <button class="btn" onclick="document.getElementById('chest-form-com').classList.toggle('hidden')">+ Crear Cofre de Comunidad</button>
+                <div id="chest-form-com" class="hidden" style="margin-top:10px;">
+                    <input type="text" id="cc-name" placeholder="Nombre del Cofre"><br>
+                    <input type="number" id="cc-stock" placeholder="Cantidad en stock"><br>
+                    <input type="number" id="cc-price" placeholder="Precio $"><br>
+                    <input type="text" id="cc-rewards" placeholder="Recompensas (ej: Perro 50%, Gato 50%)"><br>
+                    <button class="btn" onclick="createChest('community')">Publicar Cofre</button>
+                </div>
+                <hr>
+                <div id="community-chests" class="shop-grid"></div>
+            </div>
+        </main>
+
+        <main id="tab-eventos" class="tab-content hidden">
+            <h2>Eventos Activos</h2>
+            
+            <div id="lucastv-event-btn" class="hidden">
+                <button class="btn" onclick="document.getElementById('event-form').classList.toggle('hidden')">+ Crear Evento (LucasTV)</button>
+                <div id="event-form" class="card hidden">
+                    <input type="text" id="ev-name" placeholder="Nombre del Evento (Ej: Campamento de Verano)"><br>
+                    <input type="text" id="ev-start" placeholder="Inicia"><br>
+                    <input type="text" id="ev-end" placeholder="Acaba en (Ej: 5 días)"><br>
+                    <textarea id="ev-desc" placeholder="Descripción..."></textarea><br>
+                    <button class="btn" onclick="createEvent()">Lanzar Evento</button>
+                </div>
+            </div>
+
+            <div id="events-list"></div>
+        </main>
+    </div>
+
+    <script>
+        // Simulador de Base de Datos en la Nube (localStorage)
+        let users = JSON.parse(localStorage.getItem('users')) || {};
+        let chests = JSON.parse(localStorage.getItem('chests')) || { game: [], community: [] };
+        let events = JSON.parse(localStorage.getItem('events')) || [];
+        let currentUser = null;
+
+        // --- SISTEMA DE AUTENTICACIÓN ---
+        function register() {
+            let user = document.getElementById('auth-user').value.trim();
+            let pass = document.getElementById('auth-pass').value;
+            if (!user || !pass) return alert("Llena los campos");
+            if (users[user]) return alert("El usuario ya existe");
+
+            users[user] = {
+                username: user,
+                password: pass,
+                gmail: null,
+                money: 0,
+                desc: "",
+                img: "",
+                lang: "es",
+                theme: "light",
+                inventory: []
+            };
+            saveDB();
+            alert("Cuenta registrada en la nube. ¡Iniciando sesión!");
+            login();
+        }
+
+        function login() {
+            let user = document.getElementById('auth-user').value.trim();
+            let pass = document.getElementById('auth-pass').value;
+            if (users[user] && users[user].password === pass) {
+                currentUser = users[user];
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('app-section').classList.remove('hidden');
+                loadProfile();
+                renderShop();
+                renderEvents();
+                checkAdmin();
+            } else {
+                alert("Usuario o contraseña incorrectos");
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('app-section').classList.add('hidden');
+            document.getElementById('auth-user').value = '';
+            document.getElementById('auth-pass').value = '';
+        }
+
+        function saveDB() {
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.setItem('chests', JSON.stringify(chests));
+            localStorage.setItem('events', JSON.stringify(events));
+        }
+
+        // --- NAVEGACIÓN ---
+        function switchTab(tabId) {
+            document.getElementById('tab-perfil').classList.add('hidden');
+            document.getElementById('tab-tienda').classList.add('hidden');
+            document.getElementById('tab-eventos').classList.add('hidden');
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+        }
+
+        // --- PERFIL Y CONFIGURACIÓN ---
+        function loadProfile() {
+            document.getElementById('user-name').innerHTML = currentUser.username + (currentUser.username === 'LucasTV' ? ' <span class="admin-badge">Admin</span>' : '');
+            document.getElementById('user-money').innerText = currentUser.money;
+            document.getElementById('user-desc').value = currentUser.desc || '';
+            document.getElementById('user-img-url').value = currentUser.img || '';
+            document.getElementById('user-lang').value = currentUser.lang || 'es';
+            document.getElementById('user-theme').checked = currentUser.theme === 'dark';
+            document.getElementById('secret-pass').innerText = "********";
+            
+            if(currentUser.img) document.getElementById('user-img').src = currentUser.img;
+            toggleTheme(false); // Aplica el tema sin guardar de nuevo
+
+            // Inventario
+            let invList = document.getElementById('inventory-list');
+            invList.innerHTML = '';
+            if(currentUser.inventory.length === 0) invList.innerHTML = '<li>Inventario vacío</li>';
+            currentUser.inventory.forEach(item => {
+                invList.innerHTML += `<li>${item}</li>`;
+            });
+        }
+
+        function saveProfile() {
+            currentUser.desc = document.getElementById('user-desc').value;
+            currentUser.img = document.getElementById('user-img-url').value;
+            currentUser.lang = document.getElementById('user-lang').value;
+            users[currentUser.username] = currentUser;
+            saveDB();
+            loadProfile();
+        }
+
+        function toggleTheme(save = true) {
+            let isDark = document.getElementById('user-theme').checked;
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                currentUser.theme = 'dark';
+            } else {
+                document.body.classList.remove('dark-mode');
+                currentUser.theme = 'light';
+            }
+            if(save) {
+                users[currentUser.username] = currentUser;
+                saveDB();
+            }
+        }
+
+        function revealPassword() {
+            let email = document.getElementById('security-email').value;
+            if(!email.includes('@')) return alert("Pon un correo válido.");
+            
+            if (!currentUser.gmail) {
+                currentUser.gmail = email; // Lo vincula la primera vez
+                users[currentUser.username] = currentUser;
+                saveDB();
+                alert("Gmail vinculado por seguridad.");
+            }
+            
+            if (email === currentUser.gmail) {
+                document.getElementById('secret-pass').innerText = currentUser.password;
+                document.getElementById('security-email').value = ''; // Oculta el correo
+            } else {
+                alert("Ese no es el correo de seguridad de esta cuenta.");
+            }
+        }
+
+        // --- SISTEMA DE ADMINISTRADOR (LucasTV) ---
+        function checkAdmin() {
+            if (currentUser.username === 'LucasTV') {
+                document.getElementById('lucastv-panel').classList.remove('hidden');
+                document.getElementById('lucastv-chest-btn').classList.remove('hidden');
+                document.getElementById('lucastv-event-btn').classList.remove('hidden');
+                
+                // Mostrar usuarios
+                let uList = document.getElementById('admin-user-list');
+                uList.innerHTML = '';
+                for (let u in users) {
+                    uList.innerHTML += `<li>${u} - $${users[u].money}</li>`;
+                }
+            } else {
+                document.getElementById('lucastv-panel').classList.add('hidden');
+                document.getElementById('lucastv-chest-btn').classList.add('hidden');
+                document.getElementById('lucastv-event-btn').classList.add('hidden');
+            }
+        }
+
+        function giveMoney() {
+            let userToGive = document.getElementById('gift-user').value;
+            let amount = parseInt(document.getElementById('gift-amount').value);
+            if (users[userToGive] && amount > 0) {
+                users[userToGive].money += amount;
+                saveDB();
+                alert(`Diste $${amount} a ${userToGive}`);
+                checkAdmin();
+            } else {
+                alert("Usuario no existe o cantidad inválida");
+            }
+        }
+
+        // --- TIENDA ---
+        function createChest(type) {
+            if (type === 'game' && currentUser.username !== 'LucasTV') return;
+            
+            let name = type === 'game' ? document.getElementById('cg-name').value : document.getElementById('cc-name').value;
+            let price = type === 'game' ? document.getElementById('cg-price').value : document.getElementById('cc-price').value;
+            let stock = type === 'game' ? "Infinito" : document.getElementById('cc-stock').value;
+            let rewards = type === 'game' ? "Misterio" : document.getElementById('cc-rewards').value;
+
+            if(!name || !price) return alert("Faltan datos");
+
+            chests[type].push({
+                name: name,
+                price: parseInt(price),
+                stock: stock,
+                rewards: rewards,
+                creator: currentUser.username
+            });
+            saveDB();
+            renderShop();
+            alert("Cofre creado");
+        }
+
+        function renderShop() {
+            let gameDiv = document.getElementById('game-chests');
+            let comDiv = document.getElementById('community-chests');
+            gameDiv.innerHTML = ''; comDiv.innerHTML = '';
+
+            chests.game.forEach((c, i) => {
+                gameDiv.innerHTML += `<div class="chest-card">
+                    <h4>${c.name}</h4>
+                    <p>Precio: $${c.price}</p>
+                    <button class="btn" onclick="buyChest('game', ${i})">Comprar</button>
+                </div>`;
+            });
+
+            chests.community.forEach((c, i) => {
+                comDiv.innerHTML += `<div class="chest-card">
+                    <h4>${c.name}</h4>
+                    <small>Creado por: ${c.creator}</small>
+                    <p>Precio: $${c.price} | Stock: ${c.stock}</p>
+                    <p><small>Posibles: ${c.rewards}</small></p>
+                    <button class="btn" onclick="buyChest('community', ${i})">Comprar</button>
+                </div>`;
+            });
+        }
+
+        function buyChest(type, index) {
+            let chest = chests[type][index];
+            if (chest.stock !== "Infinito" && chest.stock <= 0) return alert("Sin stock");
+            if (currentUser.money < chest.price) return alert("No tienes suficiente dinero");
+
+            // Cobrar
+            currentUser.money -= chest.price;
+            
+            // Reducir stock si es comunidad
+            if (type === 'community') {
+                chest.stock -= 1;
+                // Pagar al creador (simulado)
+                if(users[chest.creator]) users[chest.creator].money += chest.price;
+            }
+
+            // Dar item (Simulación de probabilidad básica)
+            let itemRecibido = type === 'game' ? `${chest.name} (Objeto Especial)` : `Objeto de ${chest.name}`;
+            currentUser.inventory.push(itemRecibido);
+            
+            users[currentUser.username] = currentUser;
+            saveDB();
+            loadProfile();
+            renderShop();
+            alert(`¡Abriste el cofre! Recibiste: ${itemRecibido}`);
+        }
+
+        // --- EVENTOS ---
+        function createEvent() {
+            if (currentUser.username !== 'LucasTV') return;
+            let ev = {
+                name: document.getElementById('ev-name').value,
+                start: document.getElementById('ev-start').value,
+                end: document.getElementById('ev-end').value,
+                desc: document.getElementById('ev-desc').value,
+                comments: []
+            };
+            events.push(ev);
+            saveDB();
+            renderEvents();
+            document.getElementById('event-form').classList.add('hidden');
+        }
+
+        function renderEvents() {
+            let elist = document.getElementById('events-list');
+            elist.innerHTML = '';
+            events.forEach((ev, i) => {
+                let commentsHTML = ev.comments.map(c => `<p><b>${c.u}:</b> ${c.m}</p>`).join('');
+                elist.innerHTML += `
+                    <div class="card event-card">
+                        <h3>${ev.name}</h3>
+                        <p><b>Inicia:</b> ${ev.start} | <b>Termina:</b> ${ev.end}</p>
+                        <p>${ev.desc}</p>
+                        <hr>
+                        <h4>Comentarios</h4>
+                        <div style="background:var(--container-bg); padding:10px; max-height:150px; overflow-y:auto;">
+                            ${commentsHTML}
+                        </div>
+                        <input type="text" id="ev-com-${i}" placeholder="Escribe un comentario...">
+                        <button class="btn" onclick="addComment(${i})">Enviar</button>
+                    </div>
+                `;
+            });
+        }
+
+        function addComment(index) {
+            let text = document.getElementById(`ev-com-${index}`).value;
+            if(!text) return;
+            events[index].comments.push({u: currentUser.username, m: text});
+            saveDB();
+            renderEvents();
+        }
+    </script>
+</body>
+</html>
