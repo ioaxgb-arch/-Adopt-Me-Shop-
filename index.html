@@ -17,7 +17,6 @@
             --border-color: #dddddd;
         }
 
-        /* Tema oscuro (negro con gris) */
         body.dark-mode {
             --bg-color: #1a1a1a;
             --text-color: #f1f1f1;
@@ -34,7 +33,6 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* Utilidades */
         .hidden { display: none !important; }
         .btn {
             background-color: var(--primary-color);
@@ -44,34 +42,33 @@
             cursor: pointer;
             font-weight: bold;
             border-radius: 5px;
+            margin-top: 5px;
         }
         .btn:hover { background-color: var(--accent-color); }
         input, select, textarea {
             padding: 8px; margin: 5px 0; border: 1px solid var(--border-color);
             background-color: var(--container-bg); color: var(--text-color);
-            border-radius: 4px;
+            border-radius: 4px; width: 90%; max-width: 400px;
         }
 
-        /* Autenticación */
         #auth-section {
             max-width: 400px; margin: 100px auto; padding: 20px;
             background-color: var(--container-bg); border-radius: 10px;
             border: 2px solid var(--primary-color); text-align: center;
         }
 
-        /* Header y Navegación */
         header {
             background-color: var(--primary-color); padding: 15px 20px;
-            display: flex; justify-content: space-between; align-items: center; color: #000;
+            display: flex; justify-content: space-between; align-items: center; color: #000; flex-wrap: wrap;
         }
         header h1 { margin: 0; }
+        nav { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
         nav button {
             background: transparent; border: none; font-size: 16px;
-            font-weight: bold; cursor: pointer; margin-left: 15px; color: #000;
+            font-weight: bold; cursor: pointer; color: #000;
         }
         nav button:hover { text-decoration: underline; }
 
-        /* Contenedores de pestañas */
         .tab-content { padding: 20px; max-width: 1000px; margin: auto; }
         .card {
             background-color: var(--container-bg); border: 1px solid var(--border-color);
@@ -79,21 +76,29 @@
             border-left: 5px solid var(--primary-color);
         }
 
-        /* Perfil */
-        .profile-header { display: flex; align-items: center; gap: 20px; }
+        .profile-header { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
         .profile-pic { width: 100px; height: 100px; border-radius: 50%; background-color: var(--primary-color); object-fit: cover; }
         .admin-badge { background-color: red; color: white; padding: 2px 5px; border-radius: 3px; font-size: 12px; }
         
-        /* Tienda */
-        .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; }
         .chest-card { text-align: center; background-color: var(--container-bg); border: 1px solid var(--primary-color); padding: 10px; border-radius: 8px; }
         
-        /* Eventos */
         .event-card { border-top: 4px solid var(--primary-color); }
+        .chat-box { height: 300px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; background: var(--bg-color); margin-bottom: 10px; }
+        .chat-message { margin-bottom: 8px; }
+        .chat-message b { color: var(--primary-color); filter: brightness(0.8); }
+        .dark-mode .chat-message b { filter: brightness(1.2); }
+
+        .prob-row { display: flex; gap: 10px; align-items: center; }
+        .prob-row input { width: 45%; }
+        
+        /* Modales de Perfil Ajeno */
+        #user-modal { position: fixed; top: 10%; left: 50%; transform: translateX(-50%); background: var(--container-bg); border: 2px solid var(--primary-color); padding: 20px; z-index: 1000; box-shadow: 0 0 10px rgba(0,0,0,0.5); width: 90%; max-width: 400px; border-radius: 10px;}
     </style>
 </head>
 <body>
 
+    <!-- PANTALLA DE INGRESO Y REGISTRO -->
     <div id="auth-section">
         <h2>Bienvenido a Adopt Me Shop</h2>
         <div id="login-form">
@@ -102,20 +107,24 @@
             <button class="btn" onclick="login()">Entrar</button>
             <button class="btn" onclick="register()">Registrarse</button>
         </div>
-        <p><small>Registrarte guardará tus datos localmente simulando la nube.</small></p>
+        <p><small>Registrarte guardará tus datos. Tu sesión se mantendrá activa.</small></p>
     </div>
 
+    <!-- APLICACIÓN PRINCIPAL -->
     <div id="app-section" class="hidden">
         <header>
             <h1>Adopt Me Shop</h1>
             <nav>
                 <button onclick="switchTab('perfil')">Perfil</button>
                 <button onclick="switchTab('tienda')">Tienda</button>
+                <button onclick="switchTab('comunidad')">Social</button>
+                <button onclick="switchTab('chatglobal')">Chat Global</button>
                 <button onclick="switchTab('eventos')">Eventos</button>
                 <button onclick="logout()">Salir</button>
             </nav>
         </header>
 
+        <!-- PESTAÑA PERFIL -->
         <main id="tab-perfil" class="tab-content">
             <div class="card">
                 <div class="profile-header">
@@ -123,17 +132,25 @@
                     <div>
                         <h2 id="user-name">Usuario</h2>
                         <h3 style="color: var(--primary-color);">Dinero: $<span id="user-money">0</span></h3>
+                        <p>Seguidores: <span id="user-followers">0</span> | Siguiendo: <span id="user-following">0</span></p>
                     </div>
                 </div>
                 <hr>
                 <h3>Configuración de Perfil</h3>
-                <label>Descripción:</label>
+                <label>Descripción:</label><br>
                 <textarea id="user-desc" placeholder="Escribe algo sobre ti..." onchange="saveProfile()"></textarea>
                 <br>
-                <label>Cambiar foto (URL):</label>
+                <label>Cambiar foto (URL o elige predeterminada):</label><br>
                 <input type="text" id="user-img-url" placeholder="URL de la imagen" onchange="saveProfile()">
+                <div>
+                    <button class="btn" style="font-size: 10px;" onclick="setPresetImg('https://api.dicebear.com/7.x/adventurer/svg?seed=1')">Foto 1</button>
+                    <button class="btn" style="font-size: 10px;" onclick="setPresetImg('https://api.dicebear.com/7.x/adventurer/svg?seed=2')">Foto 2</button>
+                    <button class="btn" style="font-size: 10px;" onclick="setPresetImg('https://api.dicebear.com/7.x/adventurer/svg?seed=3')">Foto 3</button>
+                    <button class="btn" style="font-size: 10px;" onclick="setPresetImg('https://api.dicebear.com/7.x/adventurer/svg?seed=4')">Foto 4</button>
+                    <button class="btn" style="font-size: 10px;" onclick="setPresetImg('https://api.dicebear.com/7.x/adventurer/svg?seed=5')">Foto 5</button>
+                </div>
                 <br>
-                <label>Idioma:</label>
+                <label>Idioma:</label><br>
                 <select id="user-lang" onchange="saveProfile()">
                     <option value="es">Español</option>
                     <option value="en">Inglés</option>
@@ -154,6 +171,7 @@
                 <ul id="inventory-list"></ul>
             </div>
 
+            <!-- Panel Admin de LucasTV -->
             <div id="lucastv-panel" class="card hidden" style="border-color: red;">
                 <h3>Panel de Administrador (Solo LucasTV)</h3>
                 <p>Usuarios registrados:</p>
@@ -164,77 +182,146 @@
             </div>
         </main>
 
+        <!-- PESTAÑA TIENDA -->
         <main id="tab-tienda" class="tab-content hidden">
+            <div class="card" style="text-align: center;">
+                <input type="text" id="search-chest" placeholder="🔍 Buscar cofre por nombre..." onkeyup="renderShop()" style="width: 100%; max-width: 600px; font-size: 16px;">
+            </div>
+
             <div class="card">
                 <h2>Cofres del Juego</h2>
                 <div id="game-chests" class="shop-grid"></div>
                 <div id="lucastv-chest-btn" class="hidden" style="margin-top: 15px;">
                     <button class="btn" onclick="document.getElementById('chest-form-game').classList.toggle('hidden')">+ Crear Cofre del Juego</button>
                     <div id="chest-form-game" class="hidden">
-                        <input type="text" id="cg-name" placeholder="Nombre del Cofre">
-                        <input type="number" id="cg-price" placeholder="Precio $">
-                        <button class="btn" onclick="createChest('game')">Guardar</button>
+                        <input type="text" id="cg-name" placeholder="Nombre del Cofre"><br>
+                        <input type="number" id="cg-price" placeholder="Precio $"><br>
+                        <h4>Probabilidades (Secciones)</h4>
+                        <div id="prob-list-cg"></div>
+                        <button class="btn" onclick="addProbRow('cg')">+ Añadir Premio</button><br><br>
+                        <button class="btn" style="background-color: #28a745; color: white;" onclick="createChest('game')">Guardar Cofre</button>
                     </div>
                 </div>
             </div>
 
             <div class="card">
                 <h2>Cofres de la Comunidad</h2>
+                <p><b>Nota:</b> Crear un cofre cuesta $1,000 por cada 1 de stock.</p>
                 <button class="btn" onclick="document.getElementById('chest-form-com').classList.toggle('hidden')">+ Crear Cofre de Comunidad</button>
                 <div id="chest-form-com" class="hidden" style="margin-top:10px;">
                     <input type="text" id="cc-name" placeholder="Nombre del Cofre"><br>
-                    <input type="number" id="cc-stock" placeholder="Cantidad en stock"><br>
-                    <input type="number" id="cc-price" placeholder="Precio $"><br>
-                    <input type="text" id="cc-rewards" placeholder="Recompensas (ej: Perro 50%, Gato 50%)"><br>
-                    <button class="btn" onclick="createChest('community')">Publicar Cofre</button>
+                    <input type="number" id="cc-stock" placeholder="Cantidad en stock (Ej: 5)"><br>
+                    <input type="number" id="cc-price" placeholder="Precio al que lo venderás $"><br>
+                    <h4>Probabilidades (Secciones)</h4>
+                    <div id="prob-list-cc"></div>
+                    <button class="btn" onclick="addProbRow('cc')">+ Añadir Premio</button><br><br>
+                    <button class="btn" style="background-color: #28a745; color: white;" onclick="createChest('community')">Publicar Cofre</button>
                 </div>
                 <hr>
                 <div id="community-chests" class="shop-grid"></div>
             </div>
         </main>
 
+        <!-- PESTAÑA SOCIAL / COMUNIDAD -->
+        <main id="tab-comunidad" class="tab-content hidden">
+            <div class="card">
+                <h2>Buscar Usuarios</h2>
+                <input type="text" id="search-user" placeholder="🔍 Buscar por nombre..." onkeyup="searchUsers()">
+                <ul id="user-search-results"></ul>
+            </div>
+            
+            <div class="card">
+                <h2>Solicitudes de Amistad</h2>
+                <ul id="friend-requests-list"></ul>
+            </div>
+
+            <div class="card">
+                <h2>Mis Amigos (Chat Privado)</h2>
+                <ul id="friends-list"></ul>
+                <hr>
+                <div id="private-chat-zone" class="hidden">
+                    <h3 id="private-chat-title">Chat con...</h3>
+                    <div id="private-chat-box" class="chat-box"></div>
+                    <input type="text" id="private-chat-input" placeholder="Escribe un mensaje...">
+                    <button class="btn" onclick="sendPrivateMessage()">Enviar</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- PESTAÑA CHAT GLOBAL -->
+        <main id="tab-chatglobal" class="tab-content hidden">
+            <div class="card">
+                <h2>Chat Global</h2>
+                <p>Comunícate con todos los usuarios registrados aquí.</p>
+                <div id="global-chat-box" class="chat-box"></div>
+                <input type="text" id="global-chat-input" placeholder="Escribe un mensaje..." onkeypress="if(event.key === 'Enter') sendGlobalMessage()">
+                <button class="btn" onclick="sendGlobalMessage()">Enviar</button>
+            </div>
+        </main>
+
+        <!-- PESTAÑA EVENTOS -->
         <main id="tab-eventos" class="tab-content hidden">
             <h2>Eventos Activos</h2>
-            
             <div id="lucastv-event-btn" class="hidden">
                 <button class="btn" onclick="document.getElementById('event-form').classList.toggle('hidden')">+ Crear Evento (LucasTV)</button>
                 <div id="event-form" class="card hidden">
                     <input type="text" id="ev-name" placeholder="Nombre del Evento (Ej: Campamento de Verano)"><br>
                     <input type="text" id="ev-start" placeholder="Inicia"><br>
                     <input type="text" id="ev-end" placeholder="Acaba en (Ej: 5 días)"><br>
-                    <textarea id="ev-desc" placeholder="Descripción..."></textarea><br>
+                    <textarea id="ev-desc" placeholder="Descripción... (Pistas del secreto)"></textarea><br>
                     <button class="btn" onclick="createEvent()">Lanzar Evento</button>
                 </div>
             </div>
-
             <div id="events-list"></div>
         </main>
     </div>
 
+    <!-- Modal Perfil de Usuario -->
+    <div id="user-modal" class="hidden">
+        <button onclick="document.getElementById('user-modal').classList.add('hidden')" style="float:right; background:red; color:white; border:none; cursor:pointer;">X</button>
+        <div style="text-align: center;">
+            <img id="modal-img" class="profile-pic" src="">
+            <h2 id="modal-name">Nombre</h2>
+            <p id="modal-desc"></p>
+            <p>Dinero: $<span id="modal-money"></span></p>
+            <button class="btn" id="modal-follow-btn" onclick="toggleFollow()">Seguir</button>
+            <button class="btn" id="modal-friend-btn" onclick="sendFriendRequest()">Añadir Amigo</button>
+        </div>
+    </div>
+
     <script>
-        // Simulador de Base de Datos en la Nube (localStorage)
+        // --- BASE DE DATOS LOCAL (Simulando la nube) ---
         let users = JSON.parse(localStorage.getItem('users')) || {};
         let chests = JSON.parse(localStorage.getItem('chests')) || { game: [], community: [] };
         let events = JSON.parse(localStorage.getItem('events')) || [];
+        let globalChat = JSON.parse(localStorage.getItem('globalChat')) || [];
+        let privateChats = JSON.parse(localStorage.getItem('privateChats')) || {};
+        
         let currentUser = null;
+        let viewingUser = null; // Para el modal de perfil
+        let activePrivateChat = null;
+
+        // Auto-login si ya estabas registrado/logueado
+        window.onload = () => {
+            let savedSession = localStorage.getItem('activeSession');
+            if (savedSession && users[savedSession]) {
+                document.getElementById('auth-user').value = savedSession;
+                document.getElementById('auth-pass').value = users[savedSession].password;
+                login();
+            }
+        };
 
         // --- SISTEMA DE AUTENTICACIÓN ---
         function register() {
             let user = document.getElementById('auth-user').value.trim();
             let pass = document.getElementById('auth-pass').value;
             if (!user || !pass) return alert("Llena los campos");
-            if (users[user]) return alert("El usuario ya existe");
+            if (users[user]) return alert("El usuario ya existe. Si es tuyo, dale a Entrar.");
 
             users[user] = {
-                username: user,
-                password: pass,
-                gmail: null,
-                money: 0,
-                desc: "",
-                img: "",
-                lang: "es",
-                theme: "light",
-                inventory: []
+                username: user, password: pass, gmail: null, money: 0, desc: "", img: "",
+                lang: "es", theme: "light", inventory: [], followers: [], following: [],
+                friends: [], friendRequests: []
             };
             saveDB();
             alert("Cuenta registrada en la nube. ¡Iniciando sesión!");
@@ -246,11 +333,21 @@
             let pass = document.getElementById('auth-pass').value;
             if (users[user] && users[user].password === pass) {
                 currentUser = users[user];
+                localStorage.setItem('activeSession', user); // Persistencia
                 document.getElementById('auth-section').classList.add('hidden');
                 document.getElementById('app-section').classList.remove('hidden');
+                
+                // Actualizar estructura si es un usuario viejo (retrocompatibilidad)
+                if(!currentUser.followers) currentUser.followers = [];
+                if(!currentUser.following) currentUser.following = [];
+                if(!currentUser.friends) currentUser.friends = [];
+                if(!currentUser.friendRequests) currentUser.friendRequests = [];
+
                 loadProfile();
                 renderShop();
                 renderEvents();
+                renderGlobalChat();
+                renderSocial();
                 checkAdmin();
             } else {
                 alert("Usuario o contraseña incorrectos");
@@ -259,6 +356,7 @@
 
         function logout() {
             currentUser = null;
+            localStorage.removeItem('activeSession'); // Quita persistencia
             document.getElementById('auth-section').classList.remove('hidden');
             document.getElementById('app-section').classList.add('hidden');
             document.getElementById('auth-user').value = '';
@@ -266,33 +364,39 @@
         }
 
         function saveDB() {
+            if(currentUser) users[currentUser.username] = currentUser;
             localStorage.setItem('users', JSON.stringify(users));
             localStorage.setItem('chests', JSON.stringify(chests));
             localStorage.setItem('events', JSON.stringify(events));
+            localStorage.setItem('globalChat', JSON.stringify(globalChat));
+            localStorage.setItem('privateChats', JSON.stringify(privateChats));
         }
 
         // --- NAVEGACIÓN ---
         function switchTab(tabId) {
-            document.getElementById('tab-perfil').classList.add('hidden');
-            document.getElementById('tab-tienda').classList.add('hidden');
-            document.getElementById('tab-eventos').classList.add('hidden');
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
             document.getElementById('tab-' + tabId).classList.remove('hidden');
+            if(tabId === 'chatglobal') renderGlobalChat();
+            if(tabId === 'comunidad') renderSocial();
         }
 
         // --- PERFIL Y CONFIGURACIÓN ---
         function loadProfile() {
             document.getElementById('user-name').innerHTML = currentUser.username + (currentUser.username === 'LucasTV' ? ' <span class="admin-badge">Admin</span>' : '');
             document.getElementById('user-money').innerText = currentUser.money;
+            document.getElementById('user-followers').innerText = currentUser.followers.length;
+            document.getElementById('user-following').innerText = currentUser.following.length;
             document.getElementById('user-desc').value = currentUser.desc || '';
             document.getElementById('user-img-url').value = currentUser.img || '';
             document.getElementById('user-lang').value = currentUser.lang || 'es';
             document.getElementById('user-theme').checked = currentUser.theme === 'dark';
             document.getElementById('secret-pass').innerText = "********";
             
-            if(currentUser.img) document.getElementById('user-img').src = currentUser.img;
-            toggleTheme(false); // Aplica el tema sin guardar de nuevo
+            let imgSource = currentUser.img || 'https://via.placeholder.com/100?text=Foto';
+            document.getElementById('user-img').src = imgSource;
+            
+            toggleTheme(false); 
 
-            // Inventario
             let invList = document.getElementById('inventory-list');
             invList.innerHTML = '';
             if(currentUser.inventory.length === 0) invList.innerHTML = '<li>Inventario vacío</li>';
@@ -305,9 +409,13 @@
             currentUser.desc = document.getElementById('user-desc').value;
             currentUser.img = document.getElementById('user-img-url').value;
             currentUser.lang = document.getElementById('user-lang').value;
-            users[currentUser.username] = currentUser;
             saveDB();
             loadProfile();
+        }
+
+        function setPresetImg(url) {
+            document.getElementById('user-img-url').value = url;
+            saveProfile();
         }
 
         function toggleTheme(save = true) {
@@ -319,10 +427,7 @@
                 document.body.classList.remove('dark-mode');
                 currentUser.theme = 'light';
             }
-            if(save) {
-                users[currentUser.username] = currentUser;
-                saveDB();
-            }
+            if(save) saveDB();
         }
 
         function revealPassword() {
@@ -330,15 +435,13 @@
             if(!email.includes('@')) return alert("Pon un correo válido.");
             
             if (!currentUser.gmail) {
-                currentUser.gmail = email; // Lo vincula la primera vez
-                users[currentUser.username] = currentUser;
+                currentUser.gmail = email; 
                 saveDB();
                 alert("Gmail vinculado por seguridad.");
             }
-            
             if (email === currentUser.gmail) {
                 document.getElementById('secret-pass').innerText = currentUser.password;
-                document.getElementById('security-email').value = ''; // Oculta el correo
+                document.getElementById('security-email').value = ''; 
             } else {
                 alert("Ese no es el correo de seguridad de esta cuenta.");
             }
@@ -351,7 +454,6 @@
                 document.getElementById('lucastv-chest-btn').classList.remove('hidden');
                 document.getElementById('lucastv-event-btn').classList.remove('hidden');
                 
-                // Mostrar usuarios
                 let uList = document.getElementById('admin-user-list');
                 uList.innerHTML = '';
                 for (let u in users) {
@@ -377,48 +479,95 @@
             }
         }
 
-        // --- TIENDA ---
+        // --- TIENDA, COFRES Y PROBABILIDADES ---
+        function addProbRow(type) {
+            let div = document.getElementById(`prob-list-${type}`);
+            let row = document.createElement('div');
+            row.className = 'prob-row';
+            row.innerHTML = `
+                <input type="text" placeholder="Premio (Ej: Perro)" class="prob-item">
+                <input type="number" placeholder="% (Ej: 50)" class="prob-pct">
+                <button class="btn" style="background:red; color:white; padding: 5px;" onclick="this.parentElement.remove()">X</button>
+            `;
+            div.appendChild(row);
+        }
+
+        function getProbabilities(type) {
+            let rows = document.getElementById(`prob-list-${type}`).getElementsByClassName('prob-row');
+            let probs = [];
+            let totalPct = 0;
+            for(let row of rows) {
+                let item = row.querySelector('.prob-item').value;
+                let pct = parseInt(row.querySelector('.prob-pct').value);
+                if(item && pct > 0) {
+                    probs.push({item, pct});
+                    totalPct += pct;
+                }
+            }
+            if(totalPct !== 100 && probs.length > 0) alert("Advertencia: Las probabilidades no suman 100%. Se ajustará automáticamente en el sorteo.");
+            return probs;
+        }
+
         function createChest(type) {
             if (type === 'game' && currentUser.username !== 'LucasTV') return;
             
             let name = type === 'game' ? document.getElementById('cg-name').value : document.getElementById('cc-name').value;
             let price = type === 'game' ? document.getElementById('cg-price').value : document.getElementById('cc-price').value;
-            let stock = type === 'game' ? "Infinito" : document.getElementById('cc-stock').value;
-            let rewards = type === 'game' ? "Misterio" : document.getElementById('cc-rewards').value;
+            let stock = type === 'game' ? "Infinito" : parseInt(document.getElementById('cc-stock').value);
+            let probs = getProbabilities(type === 'game' ? 'cg' : 'cc');
 
-            if(!name || !price) return alert("Faltan datos");
+            if(!name || !price || probs.length === 0) return alert("Faltan datos o no agregaste premios.");
+
+            // Cobro por crear cofre de comunidad (1000 por cada stock)
+            if(type === 'community') {
+                if(!stock || stock <= 0) return alert("Pon un stock válido.");
+                let creationCost = stock * 1000;
+                if(currentUser.money < creationCost) {
+                    return alert(`No tienes dinero suficiente. Crear este cofre cuesta $${creationCost} ($1000 por stock).`);
+                }
+                currentUser.money -= creationCost;
+                loadProfile();
+            }
 
             chests[type].push({
                 name: name,
                 price: parseInt(price),
                 stock: stock,
-                rewards: rewards,
+                probs: probs,
                 creator: currentUser.username
             });
             saveDB();
             renderShop();
-            alert("Cofre creado");
+            
+            // Limpiar formularios
+            document.getElementById(`prob-list-${type === 'game' ? 'cg' : 'cc'}`).innerHTML = '';
+            alert(`Cofre creado exitosamente.${type === 'community' ? ' Se te cobraron $'+(stock*1000) : ''}`);
         }
 
         function renderShop() {
+            let filter = document.getElementById('search-chest').value.toLowerCase();
             let gameDiv = document.getElementById('game-chests');
             let comDiv = document.getElementById('community-chests');
             gameDiv.innerHTML = ''; comDiv.innerHTML = '';
 
             chests.game.forEach((c, i) => {
+                if(!c.name.toLowerCase().includes(filter)) return;
+                let probText = c.probs.map(p => `${p.item} ${p.pct}%`).join(' | ');
                 gameDiv.innerHTML += `<div class="chest-card">
                     <h4>${c.name}</h4>
                     <p>Precio: $${c.price}</p>
+                    <p><small>${probText}</small></p>
                     <button class="btn" onclick="buyChest('game', ${i})">Comprar</button>
                 </div>`;
             });
 
             chests.community.forEach((c, i) => {
+                if(!c.name.toLowerCase().includes(filter)) return;
+                let probText = c.probs.map(p => `${p.item} ${p.pct}%`).join(' | ');
                 comDiv.innerHTML += `<div class="chest-card">
-                    <h4>${c.name}</h4>
-                    <small>Creado por: ${c.creator}</small>
+                    <h4>${c.name} <br><small style="cursor:pointer; color:var(--primary-color); text-decoration:underline;" onclick="openProfileModal('${c.creator}')">de ${c.creator}</small></h4>
                     <p>Precio: $${c.price} | Stock: ${c.stock}</p>
-                    <p><small>Posibles: ${c.rewards}</small></p>
+                    <p><small>${probText}</small></p>
                     <button class="btn" onclick="buyChest('community', ${i})">Comprar</button>
                 </div>`;
             });
@@ -429,25 +578,199 @@
             if (chest.stock !== "Infinito" && chest.stock <= 0) return alert("Sin stock");
             if (currentUser.money < chest.price) return alert("No tienes suficiente dinero");
 
-            // Cobrar
             currentUser.money -= chest.price;
             
-            // Reducir stock si es comunidad
             if (type === 'community') {
                 chest.stock -= 1;
-                // Pagar al creador (simulado)
                 if(users[chest.creator]) users[chest.creator].money += chest.price;
             }
 
-            // Dar item (Simulación de probabilidad básica)
-            let itemRecibido = type === 'game' ? `${chest.name} (Objeto Especial)` : `Objeto de ${chest.name}`;
-            currentUser.inventory.push(itemRecibido);
+            // Sistema de probabilidades
+            let totalWeight = chest.probs.reduce((sum, p) => sum + p.pct, 0);
+            let random = Math.random() * totalWeight;
+            let currentWeight = 0;
+            let itemRecibido = chest.probs[0].item; // Por defecto
             
-            users[currentUser.username] = currentUser;
+            for(let p of chest.probs) {
+                currentWeight += p.pct;
+                if(random <= currentWeight) {
+                    itemRecibido = p.item;
+                    break;
+                }
+            }
+
+            currentUser.inventory.push(`${itemRecibido} (de ${chest.name})`);
             saveDB();
             loadProfile();
             renderShop();
             alert(`¡Abriste el cofre! Recibiste: ${itemRecibido}`);
+        }
+
+        // --- SISTEMA SOCIAL (Buscar, Perfiles, Amigos) ---
+        function searchUsers() {
+            let filter = document.getElementById('search-user').value.toLowerCase();
+            let results = document.getElementById('user-search-results');
+            results.innerHTML = '';
+            if(!filter) return;
+
+            for(let u in users) {
+                if(u.toLowerCase().includes(filter) && u !== currentUser.username) {
+                    results.innerHTML += `<li><a href="#" onclick="openProfileModal('${u}')" style="color:var(--text-color); font-weight:bold;">${u}</a></li>`;
+                }
+            }
+        }
+
+        function openProfileModal(username) {
+            if(!users[username]) return;
+            viewingUser = username;
+            let u = users[username];
+            
+            document.getElementById('modal-img').src = u.img || 'https://via.placeholder.com/100?text=Foto';
+            document.getElementById('modal-name').innerText = u.username;
+            document.getElementById('modal-desc').innerText = u.desc || 'Sin descripción';
+            document.getElementById('modal-money').innerText = u.money;
+            
+            let followBtn = document.getElementById('modal-follow-btn');
+            if(currentUser.following.includes(username)) {
+                followBtn.innerText = 'Dejar de Seguir';
+                followBtn.style.background = 'gray';
+            } else {
+                followBtn.innerText = 'Seguir';
+                followBtn.style.background = 'var(--primary-color)';
+            }
+
+            let friendBtn = document.getElementById('modal-friend-btn');
+            if(currentUser.friends.includes(username)) {
+                friendBtn.innerText = 'Ya son amigos';
+                friendBtn.disabled = true;
+            } else if (u.friendRequests.includes(currentUser.username)) {
+                friendBtn.innerText = 'Solicitud Enviada';
+                friendBtn.disabled = true;
+            } else {
+                friendBtn.innerText = 'Añadir Amigo';
+                friendBtn.disabled = false;
+            }
+
+            document.getElementById('user-modal').classList.remove('hidden');
+        }
+
+        function toggleFollow() {
+            let u = users[viewingUser];
+            if(currentUser.following.includes(viewingUser)) {
+                currentUser.following = currentUser.following.filter(f => f !== viewingUser);
+                u.followers = u.followers.filter(f => f !== currentUser.username);
+            } else {
+                currentUser.following.push(viewingUser);
+                u.followers.push(currentUser.username);
+            }
+            saveDB();
+            openProfileModal(viewingUser);
+            loadProfile();
+        }
+
+        function sendFriendRequest() {
+            let u = users[viewingUser];
+            if(!u.friendRequests.includes(currentUser.username)) {
+                u.friendRequests.push(currentUser.username);
+                saveDB();
+                alert("Solicitud enviada a " + viewingUser);
+                openProfileModal(viewingUser);
+            }
+        }
+
+        function renderSocial() {
+            let reqList = document.getElementById('friend-requests-list');
+            reqList.innerHTML = '';
+            if(currentUser.friendRequests.length === 0) reqList.innerHTML = '<li>No tienes solicitudes</li>';
+            currentUser.friendRequests.forEach(req => {
+                reqList.innerHTML += `<li>${req} 
+                    <button class="btn" style="padding:2px 5px;" onclick="acceptFriend('${req}')">Aceptar</button>
+                    <button class="btn" style="padding:2px 5px; background:red; color:white;" onclick="rejectFriend('${req}')">X</button>
+                </li>`;
+            });
+
+            let fList = document.getElementById('friends-list');
+            fList.innerHTML = '';
+            if(currentUser.friends.length === 0) fList.innerHTML = '<li>Aún no tienes amigos</li>';
+            currentUser.friends.forEach(f => {
+                fList.innerHTML += `<li>${f} <button class="btn" style="padding:2px 5px;" onclick="openPrivateChat('${f}')">💬 Chatear</button></li>`;
+            });
+        }
+
+        function acceptFriend(user) {
+            currentUser.friendRequests = currentUser.friendRequests.filter(r => r !== user);
+            if(!currentUser.friends.includes(user)) currentUser.friends.push(user);
+            if(!users[user].friends.includes(currentUser.username)) users[user].friends.push(currentUser.username);
+            saveDB();
+            renderSocial();
+            alert("Ahora eres amigo de " + user);
+        }
+
+        function rejectFriend(user) {
+            currentUser.friendRequests = currentUser.friendRequests.filter(r => r !== user);
+            saveDB();
+            renderSocial();
+        }
+
+        // --- CHAT PRIVADO ---
+        function getChatId(u1, u2) {
+            return [u1, u2].sort().join('_');
+        }
+
+        function openPrivateChat(friend) {
+            activePrivateChat = friend;
+            document.getElementById('private-chat-zone').classList.remove('hidden');
+            document.getElementById('private-chat-title').innerText = "Chat con " + friend;
+            renderPrivateChat();
+        }
+
+        function renderPrivateChat() {
+            if(!activePrivateChat) return;
+            let chatId = getChatId(currentUser.username, activePrivateChat);
+            if(!privateChats[chatId]) privateChats[chatId] = [];
+            
+            let box = document.getElementById('private-chat-box');
+            box.innerHTML = '';
+            privateChats[chatId].forEach(msg => {
+                box.innerHTML += `<div class="chat-message"><b>${msg.u}:</b> ${msg.m}</div>`;
+            });
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function sendPrivateMessage() {
+            let input = document.getElementById('private-chat-input');
+            let text = input.value.trim();
+            if(!text || !activePrivateChat) return;
+
+            let chatId = getChatId(currentUser.username, activePrivateChat);
+            if(!privateChats[chatId]) privateChats[chatId] = [];
+            
+            privateChats[chatId].push({u: currentUser.username, m: text});
+            saveDB();
+            input.value = '';
+            renderPrivateChat();
+        }
+
+        // --- CHAT GLOBAL ---
+        function renderGlobalChat() {
+            let box = document.getElementById('global-chat-box');
+            box.innerHTML = '';
+            globalChat.forEach(msg => {
+                box.innerHTML += `<div class="chat-message"><b>${msg.u}:</b> ${msg.m}</div>`;
+            });
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function sendGlobalMessage() {
+            let input = document.getElementById('global-chat-input');
+            let text = input.value.trim();
+            if(!text) return;
+
+            globalChat.push({u: currentUser.username, m: text});
+            if(globalChat.length > 50) globalChat.shift(); // Guardar solo los últimos 50
+            saveDB();
+            input.value = '';
+            renderGlobalChat();
         }
 
         // --- EVENTOS ---
@@ -464,24 +787,25 @@
             saveDB();
             renderEvents();
             document.getElementById('event-form').classList.add('hidden');
+            alert("Evento Creado");
         }
 
         function renderEvents() {
             let elist = document.getElementById('events-list');
             elist.innerHTML = '';
             events.forEach((ev, i) => {
-                let commentsHTML = ev.comments.map(c => `<p><b>${c.u}:</b> ${c.m}</p>`).join('');
+                let commentsHTML = ev.comments.map(c => `<div class="chat-message"><b>${c.u}:</b> ${c.m}</div>`).join('');
                 elist.innerHTML += `
                     <div class="card event-card">
                         <h3>${ev.name}</h3>
                         <p><b>Inicia:</b> ${ev.start} | <b>Termina:</b> ${ev.end}</p>
                         <p>${ev.desc}</p>
                         <hr>
-                        <h4>Comentarios</h4>
-                        <div style="background:var(--container-bg); padding:10px; max-height:150px; overflow-y:auto;">
+                        <h4>Comentarios (Resuelve el secreto aquí)</h4>
+                        <div style="background:var(--bg-color); padding:10px; max-height:150px; overflow-y:auto; border: 1px solid var(--border-color); margin-bottom:10px;">
                             ${commentsHTML}
                         </div>
-                        <input type="text" id="ev-com-${i}" placeholder="Escribe un comentario...">
+                        <input type="text" id="ev-com-${i}" placeholder="Escribe un comentario..." onkeypress="if(event.key === 'Enter') addComment(${i})">
                         <button class="btn" onclick="addComment(${i})">Enviar</button>
                     </div>
                 `;
@@ -489,10 +813,12 @@
         }
 
         function addComment(index) {
-            let text = document.getElementById(`ev-com-${index}`).value;
+            let input = document.getElementById(`ev-com-${index}`);
+            let text = input.value.trim();
             if(!text) return;
             events[index].comments.push({u: currentUser.username, m: text});
             saveDB();
+            input.value = '';
             renderEvents();
         }
     </script>
